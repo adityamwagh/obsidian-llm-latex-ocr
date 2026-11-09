@@ -3,11 +3,31 @@ import { extractLatex, formatLatex, recognizeImage } from "./api";
 import { AutoClipboardController } from "./auto-clipboard";
 import { blobToImagePayload, copyTextToClipboard, isImageFile, readClipboardImage, readFileAsBlob } from "./image";
 import { LLMLatexOCRModal } from "./modal";
+import { registerPasteImageHandler } from "./paste-ocr";
 import { ProviderSuggestModal } from "./provider-switcher";
 import { ClipboardAction, LLMLatexOCRSettings, ProviderProfile, getActiveProvider as getActiveProviderProfile, normalizeSettings } from "./settings";
 import { LLMLatexOCRSettingsTab } from "./settings-tab";
 
 const PLACEHOLDER = "⏳ LaTeX OCR…";
+
+function extensionForMime(type: string): string {
+	switch (type) {
+		case "image/jpeg":
+			return "jpg";
+		case "image/gif":
+			return "gif";
+		case "image/webp":
+			return "webp";
+		case "image/avif":
+			return "avif";
+		case "image/bmp":
+			return "bmp";
+		case "image/svg+xml":
+			return "svg";
+		default:
+			return "png";
+	}
+}
 
 function getErrorMessage(error: unknown): string {
 	if (error instanceof Error) return error.message;
@@ -95,6 +115,8 @@ export default class LLMLatexOCR extends Plugin {
 				return true;
 			},
 		});
+
+		registerPasteImageHandler(this);
 
 		this.autoClipboard = new AutoClipboardController(this);
 		this.autoClipboard.refresh();
@@ -230,6 +252,29 @@ export default class LLMLatexOCR extends Plugin {
 		} catch (error) {
 			this.removePlaceholder(editor, fromLine);
 			new Notice(`LaTeX OCR failed: ${getErrorMessage(error)}`, 10000);
+			console.error("llm-latex-ocr:", error);
+		}
+	}
+
+	/**
+	 * Insert an image into the note as a normal attachment. Used by the paste
+	 * dialog when the image is not an equation.
+	 */
+	async insertImageFromBlob(blob: Blob, editor: Editor, fileName = "Pasted image"): Promise<void> {
+		try {
+			const sourcePath = this.app.workspace.getActiveFile()?.path ?? "";
+			const extension = extensionForMime(blob.type);
+			const rawName = fileName.trim() || `Pasted image.${extension}`;
+			const withExtension = /\.[a-z0-9]+$/i.test(rawName) ? rawName : `${rawName}.${extension}`;
+			const safeName = withExtension.replace(/[\\/:*?"<>|]/g, "-");
+
+			const path = await this.app.fileManager.getAvailablePathForAttachment(safeName, sourcePath);
+			const file = await this.app.vault.createBinary(path, await blob.arrayBuffer());
+			const link = this.app.fileManager.generateMarkdownLink(file, sourcePath);
+			editor.replaceSelection(`!${link}`);
+			new Notice("Image inserted.");
+		} catch (error) {
+			new Notice(`Could not insert image: ${getErrorMessage(error)}`, 8000);
 			console.error("llm-latex-ocr:", error);
 		}
 	}

@@ -278,6 +278,26 @@ export class LLMLatexOCRSettingsTab extends PluginSettingTab {
 
 		new Setting(containerEl).setName("Automation").setHeading();
 
+		new Setting(containerEl)
+			.setName("Pasted images")
+			.setDesc(
+				"Choose what happens when you paste an image into a note. " +
+					"“Ask each time” shows a preview with Convert to LaTeX and Insert image. " +
+					"Works on desktop and mobile.",
+			)
+			.addDropdown((dropdown) =>
+				dropdown
+					.addOption("off", "Paste normally")
+					.addOption("ask", "Ask each time")
+					.addOption("convert", "Convert to LaTeX")
+					.setValue(settings.pasteImageMode)
+					.onChange(async (value) => {
+						settings.pasteImageMode =
+							value === "ask" || value === "convert" ? value : "off";
+						await this.plugin.saveSettings();
+					}),
+			);
+
 		if (Platform.isDesktopApp) {
 			new Setting(containerEl)
 				.setName("Automatic clipboard OCR")
@@ -300,7 +320,7 @@ export class LLMLatexOCRSettingsTab extends PluginSettingTab {
 				cls: "setting-item-description",
 				text:
 					"Automatic clipboard OCR is available in the desktop app only. " +
-					"On mobile, use the image OCR window.",
+					"On mobile, use the “Pasted images” option above or the image OCR window.",
 			});
 		}
 

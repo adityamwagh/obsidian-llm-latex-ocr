@@ -2,6 +2,8 @@ export type Provider = "openai" | "anthropic";
 
 export type ClipboardAction = "copy" | "insert";
 
+export type PasteImageMode = "off" | "ask" | "convert";
+
 export interface ProviderProfile {
 	/** Stable identifier used by the active-provider setting. */
 	id: string;
@@ -52,6 +54,9 @@ export interface LLMLatexOCRSettings {
 
 	/** Automatically OCR new images placed on the clipboard. */
 	autoClipboardOcr: boolean;
+
+	/** What to do when an image is pasted into a note. */
+	pasteImageMode: PasteImageMode;
 }
 
 export const DEFAULT_PROMPT =
@@ -111,6 +116,7 @@ export const DEFAULT_SETTINGS: LLMLatexOCRSettings = {
 	maxImageDimension: 1600,
 	clipboardAction: "copy",
 	autoClipboardOcr: false,
+	pasteImageMode: "off",
 };
 
 function newProviderId(): string {
@@ -252,5 +258,11 @@ export function normalizeSettings(data: unknown): LLMLatexOCRSettings {
 				: DEFAULT_SETTINGS.maxImageDimension,
 		clipboardAction: raw.clipboardAction === "insert" ? "insert" : "copy",
 		autoClipboardOcr: raw.autoClipboardOcr === true,
+		pasteImageMode:
+			raw.pasteImageMode === "ask" || raw.pasteImageMode === "convert"
+				? raw.pasteImageMode
+				: raw.convertPastedImages === true
+					? "convert"
+					: "off",
 	};
 }
