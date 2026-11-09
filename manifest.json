@@ -1,0 +1,9 @@
+{
+	"id": "llm-latex-ocr",
+	"name": "LLM LaTeX OCR",
+	"version": "1.0.0",
+	"minAppVersion": "1.5.7",
+	"description": "Convert equation screenshots and images into LaTeX using any OpenAI- or Anthropic-compatible vision model.",
+	"author": "Aditya",
+	"isDesktopOnly": false
+}
