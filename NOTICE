@@ -1,0 +1,19 @@
+LLM LaTeX OCR for Obsidian
+Copyright (C) 2026 Aditya Wagh
+
+This project is licensed under the MIT License. See LICENSE.
+
+Attribution
+-----------
+
+This project was inspired by obsidian-latex-ocr by Lucas Van Mol:
+
+    https://github.com/lucasvanmol/obsidian-latex-ocr
+
+The original project is licensed under the GNU General Public License v3.
+This version is an independent rewrite that replaces the Hugging Face and
+local Python inference layers with configurable OpenAI/Anthropic-compatible
+vision APIs. It also adds multi-provider profiles and automatic clipboard OCR.
+
+If you intend to redistribute code copied from the original project, review
+the original GPLv3 terms first.
